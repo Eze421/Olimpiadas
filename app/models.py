@@ -1,7 +1,7 @@
 import enum
 from datetime import date, datetime
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Enum, ForeignKey, Integer, JSON, Numeric, String, Text, UniqueConstraint, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
@@ -27,6 +27,11 @@ class ProductType(str, enum.Enum):
     FLIGHT = "flight"
     CAR_RENTAL = "car_rental"
     PACKAGE = "package"
+
+
+class AvailabilityMode(str, enum.Enum):
+    FINITE = "finite"
+    UNLIMITED = "unlimited"
 
 
 class Currency(str, enum.Enum):
@@ -121,12 +126,29 @@ class Product(Base):
     cancellation_policy: Mapped[str | None] = mapped_column(Text)
     base_price: Mapped[float] = mapped_column(Numeric(12, 2))
     currency: Mapped[Currency] = mapped_column(Enum(Currency), default=Currency.ARS)
-    available_units: Mapped[int] = mapped_column(Integer, default=0)
+    availability_mode: Mapped[AvailabilityMode] = mapped_column(Enum(AvailabilityMode), default=AvailabilityMode.FINITE)
+    available_units: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     starts_on: Mapped[date | None] = mapped_column(Date, index=True)
     ends_on: Mapped[date | None] = mapped_column(Date)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    __table_args__ = (CheckConstraint("base_price >= 0", name="ck_product_base_price"), CheckConstraint("available_units >= 0", name="ck_product_available_units"))
+    images: Mapped[list["ProductImage"]] = relationship(back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.position")
+    __table_args__ = (
+        CheckConstraint("base_price >= 0", name="ck_product_base_price"),
+        CheckConstraint("available_units IS NULL OR available_units >= 0", name="ck_product_available_units"),
+        CheckConstraint("(availability_mode = 'UNLIMITED' AND available_units IS NULL) OR (availability_mode = 'FINITE' AND available_units IS NOT NULL)", name="ck_product_availability"),
+    )
+
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    url: Mapped[str] = mapped_column(String(500))
+    alt_text: Mapped[str | None] = mapped_column(String(180))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    product: Mapped[Product] = relationship(back_populates="images")
 
 
 class ProductProvider(Base):

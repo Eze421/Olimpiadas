@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-this-in-production-to-a-long-random-secret"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 480
+    media_dir: str = "media"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

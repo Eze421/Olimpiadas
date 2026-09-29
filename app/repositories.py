@@ -1,6 +1,7 @@
 from sqlalchemy import Select, case, func, select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models import Operation, RequestAudit, User
+from app.models import Operation, Product, ProductImage, RequestAudit, User
 
 
 class UserRepository:
@@ -37,3 +38,22 @@ class AuditRepository:
     async def recent(self, limit: int):
         statement = select(RequestAudit).order_by(RequestAudit.created_at.desc()).limit(limit)
         return list((await self.session.scalars(statement)).all())
+
+
+class ProductRepository:
+    def __init__(self, session: AsyncSession): self.session = session
+    async def list(self, include_inactive: bool = False):
+        statement = select(Product).options(selectinload(Product.images)).order_by(Product.created_at.desc())
+        if not include_inactive: statement = statement.where(Product.is_active.is_(True))
+        return list((await self.session.scalars(statement)).all())
+    async def get(self, product_id: int):
+        statement = select(Product).options(selectinload(Product.images)).where(Product.id == product_id)
+        return await self.session.scalar(statement)
+    async def create(self, product: Product):
+        self.session.add(product); await self.session.commit(); return await self.get(product.id)
+    async def save(self, product: Product):
+        await self.session.commit(); return await self.get(product.id)
+    async def add_image(self, image: ProductImage):
+        self.session.add(image); await self.session.commit(); return image
+    async def remove_image(self, image: ProductImage):
+        await self.session.delete(image); await self.session.commit()

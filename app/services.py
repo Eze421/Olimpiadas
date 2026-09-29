@@ -2,9 +2,9 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import hash_password, verify_password
-from app.models import Operation, OperationStatus, Role, User
-from app.repositories import AuditRepository, OperationRepository, UserRepository
-from app.schemas import OperationCreate, OperationUpdate, UserCreate
+from app.models import AvailabilityMode, Operation, OperationStatus, Product, ProductImage, Role, User
+from app.repositories import AuditRepository, OperationRepository, ProductRepository, UserRepository
+from app.schemas import OperationCreate, OperationUpdate, ProductCreate, ProductUpdate, UserCreate
 
 
 class DomainError(Exception): pass
@@ -65,3 +65,58 @@ class MonitoringService:
     async def recent_requests(self, actor: User, limit: int):
         if actor.role != Role.SYSTEMS: raise ForbiddenError("Solo Sistemas accede a los registros del servidor")
         return await self.audits.recent(limit)
+
+
+class ProductService:
+    def __init__(self, session: AsyncSession): self.session, self.products = session, ProductRepository(session)
+    @staticmethod
+    def _require_manager(actor: User):
+        if actor.role != Role.SALES_MANAGER: raise ForbiddenError("Solo Jefatura de ventas puede administrar el catálogo")
+    async def list(self, include_inactive: bool = False):
+        return await self.products.list(include_inactive=include_inactive)
+    async def admin_list(self, actor: User):
+        self._require_manager(actor)
+        return await self.products.list(include_inactive=True)
+    async def get(self, product_id: int):
+        product = await self.products.get(product_id)
+        if not product or not product.is_active: raise NotFoundError("Producto inexistente")
+        return product
+    async def create(self, actor: User, data: ProductCreate):
+        self._require_manager(actor)
+        return await self.products.create(Product(**data.model_dump()))
+    async def update(self, actor: User, product_id: int, data: ProductUpdate):
+        self._require_manager(actor)
+        product = await self.products.get(product_id)
+        if not product: raise NotFoundError("Producto inexistente")
+        changes = data.model_dump(exclude_unset=True)
+        mode = changes.get("availability_mode", product.availability_mode)
+        if mode == AvailabilityMode.UNLIMITED:
+            changes["available_units"] = None
+        elif mode == AvailabilityMode.FINITE:
+            units = changes.get("available_units", product.available_units)
+            if units is None: raise DomainError("Al cambiar a disponibilidad finita debe indicar available_units")
+        for field, value in changes.items(): setattr(product, field, value)
+        if product.starts_on and product.ends_on and product.ends_on < product.starts_on:
+            raise DomainError("ends_on no puede ser anterior a starts_on")
+        return await self.products.save(product)
+    async def delete(self, actor: User, product_id: int):
+        self._require_manager(actor)
+        product = await self.products.get(product_id)
+        if not product: raise NotFoundError("Producto inexistente")
+        product.is_active = False
+        await self.products.save(product)
+    async def add_image(self, actor: User, product_id: int, url: str, alt_text: str | None):
+        self._require_manager(actor)
+        product = await self.products.get(product_id)
+        if not product: raise NotFoundError("Producto inexistente")
+        image = ProductImage(product_id=product.id, url=url, alt_text=alt_text, position=len(product.images))
+        await self.products.add_image(image)
+        return image
+    async def remove_image(self, actor: User, product_id: int, image_id: int):
+        self._require_manager(actor)
+        product = await self.products.get(product_id)
+        if not product: raise NotFoundError("Producto inexistente")
+        image = next((image for image in product.images if image.id == image_id), None)
+        if image is None: raise NotFoundError("Imagen inexistente")
+        await self.products.remove_image(image)
+        return image.url
