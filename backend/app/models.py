@@ -13,6 +13,7 @@ class Role(str, enum.Enum):
     SUPERVISOR = "supervisor"
     OPERATOR = "operator"
     SYSTEMS = "systems"
+    CUSTOMER = "customer"
 
 
 class OperationStatus(str, enum.Enum):

@@ -6,7 +6,7 @@ from app.models import Operation, Product, ProductImage, RequestAudit, User
 
 class UserRepository:
     def __init__(self, session: AsyncSession): self.session = session
-    async def get_by_email(self, email: str): return await self.session.scalar(select(User).where(User.email == email))
+    async def get_by_email(self, email: str): return await self.session.scalar(select(User).where(func.lower(User.email) == email.lower()))
     async def get_by_id(self, user_id: int): return await self.session.get(User, user_id)
     async def create(self, user: User) -> User:
         self.session.add(user); await self.session.flush(); return user

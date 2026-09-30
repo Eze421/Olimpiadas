@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f7f4">
+    <title>Olimpiadas · Catálogo</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#inicio" aria-label="Olimpiadas, inicio">
+        <span class="brand-mark" aria-hidden="true">O</span>
+        <span>olimpiadas</span>
+      </a>
+      <div class="topbar-actions">
+        <button class="button button-quiet admin-top-button" id="adminTopButton" type="button" hidden>Administrar</button>
+        <button class="button button-quiet cart-button" id="cartButton" type="button">Carrito <span id="cartCount">0</span></button>
+        <button class="button button-quiet account-button" id="accountButton" type="button">Ingresar</button>
+      </div>
+    </header>
+
+    <main id="inicio">
+      <section class="store-view" id="storeView" aria-labelledby="pageTitle">
+        <div class="intro">
+          <p class="eyebrow">Tu próximo viaje empieza acá</p>
+          <h1 id="pageTitle">Explorá experiencias</h1>
+          <p class="intro-copy">Encontrá tu próximo destino y empezá a planear.</p>
+        </div>
+
+        <form class="search" id="searchForm" role="search">
+          <label class="sr-only" for="searchInput">Buscar destinos o experiencias</label>
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="searchInput" type="search" placeholder="¿A dónde querés ir?" autocomplete="off">
+          <button class="button button-primary search-submit" type="submit">Buscar</button>
+        </form>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Elegí tu experiencia</p>
+            <h2>Catálogo</h2>
+          </div>
+          <button class="text-button" id="refreshButton" type="button">Actualizar</button>
+        </div>
+
+        <nav class="category-list" aria-label="Filtrar por tipo">
+          <button class="category-chip is-selected" data-category="all" type="button">Todo</button>
+          <button class="category-chip" data-category="accommodation" type="button">Alojamientos</button>
+          <button class="category-chip" data-category="flight" type="button">Vuelos</button>
+          <button class="category-chip" data-category="car_rental" type="button">Alquiler de autos</button>
+          <button class="category-chip" data-category="package" type="button">Paquetes</button>
+        </nav>
+
+        <p class="status-message" id="catalogStatus" role="status">Cargando experiencias…</p>
+        <section class="product-grid" id="productGrid" aria-label="Productos disponibles"></section>
+        <div class="empty-state" id="emptyState" hidden>
+          <span class="empty-icon" aria-hidden="true">⌕</span>
+          <h2>No encontramos experiencias</h2>
+          <p>Probá con otro destino o cambiá el filtro.</p>
+        </div>
+      </section>
+
+      <section class="admin-view" id="adminView" hidden aria-labelledby="adminTitle">
+        <div class="section-heading admin-heading">
+          <div>
+            <p class="eyebrow">Administración</p>
+            <h1 id="adminTitle">Productos</h1>
+          </div>
+          <div class="admin-heading-actions">
+            <button class="button button-quiet" id="refreshAdminButton" type="button">Actualizar</button>
+            <button class="button button-primary" id="newProductButton" type="button">＋ Nuevo producto</button>
+          </div>
+        </div>
+        <p class="status-message" id="adminStatus" role="status"></p>
+        <section class="admin-products" id="adminProducts" aria-label="Administrar productos"></section>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Navegación principal">
+      <a class="mobile-nav-item is-active" href="#inicio" id="homeNav"><span aria-hidden="true">⌂</span>Explorar</a>
+      <button class="mobile-nav-item" id="manageNav" type="button"><span aria-hidden="true">▦</span>Productos</button>
+    </nav>
+
+    <dialog class="dialog" id="loginDialog" aria-labelledby="loginTitle">
+      <form class="dialog-content" id="loginForm">
+        <button class="dialog-close" data-close="loginDialog" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">Administración</p>
+        <h2 id="loginTitle">Ingresá a tu cuenta</h2>
+        <p class="dialog-copy">Iniciá sesión para guardar y administrar tu carrito, o para gestionar el catálogo si sos Jefe de ventas.</p>
+        <label class="field-label" for="loginEmail">Correo electrónico</label>
+        <input class="text-input" id="loginEmail" name="email" type="email" autocomplete="username" required>
+        <label class="field-label" for="loginPassword">Contraseña</label>
+        <input class="text-input" id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+        <p class="form-message" id="loginMessage" role="alert"></p>
+        <button class="button button-primary button-wide" type="submit">Ingresar</button>
+        <p class="switch-auth">¿No tenés cuenta? <button class="text-button" id="openSignupButton" type="button">Registrate</button></p>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="signupDialog" aria-labelledby="signupTitle">
+      <form class="dialog-content" id="signupForm">
+        <button class="dialog-close" data-close="signupDialog" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">Crear cuenta</p>
+        <h2 id="signupTitle">Registrate para continuar</h2>
+        <p class="dialog-copy">Tu cuenta guarda tu carrito para que puedas retomarlo después.</p>
+        <label class="field-label" for="signupFirstName">Nombre</label>
+        <input class="text-input" id="signupFirstName" name="first_name" autocomplete="given-name" required minlength="2" maxlength="100">
+        <label class="field-label" for="signupLastName">Apellido</label>
+        <input class="text-input" id="signupLastName" name="last_name" autocomplete="family-name" required minlength="2" maxlength="100">
+        <label class="field-label" for="signupEmail">Correo electrónico</label>
+        <input class="text-input" id="signupEmail" name="email" type="email" autocomplete="email" required>
+        <label class="field-label" for="signupPhone">Teléfono (opcional)</label>
+        <input class="text-input" id="signupPhone" name="phone" type="tel" autocomplete="tel" maxlength="50">
+        <label class="field-label" for="signupPassword">Contraseña</label>
+        <input class="text-input" id="signupPassword" name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="128">
+        <small>Usá al menos 10 caracteres.</small>
+        <p class="form-message" id="signupMessage" role="alert"></p>
+        <button class="button button-primary button-wide" type="submit">Crear cuenta</button>
+        <p class="switch-auth">¿Ya tenés cuenta? <button class="text-button" id="openLoginButton" type="button">Iniciá sesión</button></p>
+      </form>
+    </dialog>
+
+    <dialog class="dialog dialog-large" id="cartDialog" aria-labelledby="cartTitle">
+      <div class="dialog-content cart-content">
+        <button class="dialog-close" data-close="cartDialog" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">Tu selección</p>
+        <h2 id="cartTitle">Carrito</h2>
+        <p class="cart-expiry" id="cartExpiry"></p>
+        <p class="form-message" id="cartMessage" role="status"></p>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-empty" id="cartEmpty" hidden>Tu carrito está vacío. Explorá el catálogo y agregá una experiencia.</div>
+        <div class="cart-footer" id="cartFooter">
+          <div><span>Subtotal</span><strong id="cartTotals"></strong></div>
+          <button class="button button-danger" id="clearCartButton" type="button">Vaciar carrito</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="dialog dialog-large" id="productDialog" aria-labelledby="productDialogTitle">
+      <form class="dialog-content product-form" id="productForm">
+        <button class="dialog-close" data-close="productDialog" type="button" aria-label="Cerrar">×</button>
+        <p class="eyebrow">Catálogo</p>
+        <h2 id="productDialogTitle">Nuevo producto</h2>
+        <input id="productId" type="hidden">
+        <div class="form-grid">
+          <label class="field"><span>Nombre</span><input class="text-input" id="productName" required maxlength="180"></label>
+          <label class="field"><span>SKU</span><input class="text-input" id="productSku" required maxlength="60"></label>
+          <label class="field"><span>Tipo</span>
+            <select class="text-input" id="productType" required>
+              <option value="accommodation">Alojamiento</option><option value="flight">Vuelo</option>
+              <option value="car_rental">Alquiler de auto</option><option value="package">Paquete</option>
+            </select>
+          </label>
+          <label class="field"><span>Destino</span><input class="text-input" id="productDestination" required maxlength="120"></label>
+          <label class="field"><span>Precio</span><input class="text-input" id="productPrice" type="number" min="0" step="0.01" required></label>
+          <label class="field"><span>Moneda</span><select class="text-input" id="productCurrency"><option value="ARS">ARS</option><option value="USD">USD</option></select></label>
+          <label class="field"><span>Disponibilidad</span><select class="text-input" id="productAvailability"><option value="finite">Cantidad limitada</option><option value="unlimited">Ilimitada</option></select></label>
+          <label class="field" id="stockField"><span>Cantidad disponible</span><input class="text-input" id="productStock" type="number" min="0" step="1" value="0"></label>
+          <label class="field"><span>Fecha de inicio</span><input class="text-input" id="productStarts" type="date"></label>
+          <label class="field"><span>Fecha de fin</span><input class="text-input" id="productEnds" type="date"></label>
+          <label class="field field-full"><span>Descripción</span><textarea class="text-input" id="productDescription" rows="3"></textarea></label>
+          <label class="field field-full"><span>Detalles adicionales (JSON)</span><textarea class="text-input" id="productDetails" rows="3" placeholder='{"incluye": ["Desayuno"]}'></textarea></label>
+          <label class="field field-full"><span>Política de cancelación</span><textarea class="text-input" id="productCancellation" rows="2"></textarea></label>
+          <label class="field field-full"><span>Texto alternativo para las nuevas imágenes</span><input class="text-input" id="productImageAlt" maxlength="180" placeholder="Descripción breve de las imágenes"></label>
+          <label class="field field-full"><span>Imágenes</span><input class="text-input file-input" id="productImages" type="file" accept="image/jpeg,image/png,image/webp" multiple><small>JPG, PNG o WebP · hasta 5 MB por imagen</small></label>
+          <div class="field field-full existing-images" id="existingImages"></div>
+        </div>
+        <p class="form-message" id="productMessage" role="alert"></p>
+        <div class="form-actions">
+          <button class="button button-quiet" data-close="productDialog" type="button">Cancelar</button>
+          <button class="button button-primary" type="submit">Guardar producto</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="detailDialog" aria-labelledby="detailTitle">
+      <div class="dialog-content detail-content">
+        <button class="dialog-close" data-close="detailDialog" type="button" aria-label="Cerrar">×</button>
+        <div class="detail-image-wrap">
+          <img id="detailImage" alt="">
+          <button class="gallery-control gallery-previous" id="detailPrevious" type="button" aria-label="Imagen anterior">‹</button>
+          <button class="gallery-control gallery-next" id="detailNext" type="button" aria-label="Imagen siguiente">›</button>
+          <span class="image-count" id="detailImageCount"></span>
+        </div>
+        <div class="detail-body">
+          <p class="eyebrow" id="detailType"></p>
+          <h2 id="detailTitle"></h2>
+          <p class="detail-destination" id="detailDestination"></p>
+          <p class="detail-sku" id="detailSku"></p>
+          <p id="detailDescription"></p>
+          <p class="detail-price" id="detailPrice"></p>
+          <p class="detail-stock" id="detailStock"></p>
+          <p class="detail-dates" id="detailDates"></p>
+          <section class="detail-extra" id="detailExtraSection" hidden>
+            <h3>Detalles de la experiencia</h3>
+            <dl id="detailExtra"></dl>
+          </section>
+          <section class="detail-extra" id="detailCancellationSection" hidden>
+            <h3>Política de cancelación</h3>
+            <p id="detailCancellation"></p>
+          </section>
+          <div class="detail-cart-actions">
+            <label class="field"><span>Cantidad</span><input class="text-input" id="detailQuantity" type="number" min="1" value="1"></label>
+            <button class="button button-primary" id="addToCartButton" type="button">Agregar al carrito</button>
+          </div>
+          <button class="button button-quiet" id="shareProductButton" type="button">Compartir producto</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

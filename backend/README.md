@@ -20,11 +20,21 @@ python -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 La documentación interactiva queda en `http://127.0.0.1:8000/docs`.
 
+## Frontend
+
+La interfaz está en `../frontend`. Con el backend iniciado, ejecutá en otra terminal `cd ../frontend && python3 -m http.server 5500` y abrí `http://127.0.0.1:5500`. El backend habilita CORS para ese servidor local.
+
 ## Catálogo de productos
 
 El catálogo público se consulta en `GET /api/v1/catalog/products`. Solo Jefe de ventas puede crear, editar, eliminar o administrar productos; las rutas de gestión requieren un token obtenido mediante login. La eliminación desactiva el producto para conservar referencias e historial de ventas. `GET /api/v1/catalog/products/manage/all` muestra también los productos desactivados, que pueden reactivarse con `PATCH` enviando `{"is_active": true}`.
 
 Al crear un producto se envía `availability_mode` como `finite` o `unlimited`. Para `finite`, `available_units` es obligatorio; para `unlimited`, debe ser `null`. En una edición se puede cambiar el modo; pasar a finito requiere indicar la cantidad nueva. Las imágenes se cargan por separado a `POST /api/v1/catalog/products/{id}/images` como multipart (`file`, opcional `alt_text`), acepta JPEG, PNG y WebP de hasta 5 MB y devuelve una URL bajo `/media/`. Se pueden añadir varias y borrar cada una con `DELETE /api/v1/catalog/products/{id}/images/{image_id}`. El directorio `MEDIA_DIR` (por defecto `media/`) debe persistirse y respaldarse en despliegues.
+
+## Registro de clientes y carrito
+
+Los clientes se registran con `POST /api/v1/auth/register/customer`, enviando nombre, apellido, correo, contraseña (mínimo 10 caracteres) y teléfono opcional. La respuesta incluye un token de acceso y el ID de cliente; el alta pública siempre crea el rol cliente. La ruta `POST /api/v1/auth/register` queda reservada a Jefatura para crear cuentas internas.
+
+Con ese token, el cliente puede consultar `GET /api/v1/cart`, agregar con `POST /api/v1/cart/items` (`product_id`, `quantity`), cambiar cantidades con `PATCH /api/v1/cart/items/{item_id}`, quitar una línea con `DELETE /api/v1/cart/items/{item_id}` o vaciarlo con `DELETE /api/v1/cart`. El carrito vence a los 15 minutos de su creación. El servidor valida que el producto siga publicado y que no se exceda el stock finito; los subtotales se devuelven separados por moneda. Todavía no hay checkout ni procesamiento de pagos.
 
 ## Inicio y detención automáticos
 

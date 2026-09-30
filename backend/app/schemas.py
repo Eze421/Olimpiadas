@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 from app.models import AvailabilityMode, Currency, OperationStatus, ProductType, Role
 
 
@@ -32,6 +32,26 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class CustomerRegister(BaseModel):
+    first_name: str = Field(min_length=2, max_length=100)
+    last_name: str = Field(min_length=2, max_length=100)
+    email: EmailStr
+    password: str = Field(min_length=10, max_length=128)
+    phone: str | None = Field(default=None, max_length=50)
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def validate_person_name(cls, value: str):
+        value = value.strip()
+        if len(value) < 2:
+            raise ValueError("Debe contener al menos dos caracteres")
+        return value
+
+
+class CustomerRegistrationResponse(TokenResponse):
+    customer_id: int
 
 
 class OperationCreate(BaseModel):
@@ -155,3 +175,38 @@ class ProductRead(BaseModel):
     images: list[ProductImageRead] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: int = Field(default=1, ge=1, le=100)
+
+
+class CartItemUpdate(BaseModel):
+    quantity: int = Field(ge=1, le=100)
+
+
+class CartItemRead(BaseModel):
+    id: int
+    product_id: int
+    product_name: str
+    destination: str
+    image_url: str | None
+    quantity: int
+    unit_price: Decimal
+    currency: Currency
+    line_total: Decimal
+    availability_mode: AvailabilityMode
+    available_units: int | None
+
+
+class CartTotalRead(BaseModel):
+    currency: Currency
+    amount: Decimal
+
+
+class CartRead(BaseModel):
+    id: int
+    expires_at: datetime
+    items: list[CartItemRead]
+    totals: list[CartTotalRead]
