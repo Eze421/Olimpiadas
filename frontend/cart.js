@@ -1,4 +1,4 @@
-const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : location.origin;
+const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : "https://olimpiadas-v004.onrender.com";
 const API = `${API_BASE}/api/v1`;
 const token = localStorage.getItem("olimpiadas_token");
 const byId = (id) => document.getElementById(id);

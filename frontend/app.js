@@ -1,4 +1,5 @@
-const DEFAULT_API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : location.origin;
+const RENDER_API_BASE = "https://olimpiadas-v004.onrender.com";
+const DEFAULT_API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : RENDER_API_BASE;
 const requestedApi = new URLSearchParams(location.search).get("api");
 let API_BASE = DEFAULT_API_BASE;
 if (requestedApi) {
@@ -6,7 +7,7 @@ if (requestedApi) {
     const requestedOrigin = new URL(requestedApi).origin;
     const localFrontend = ["localhost", "127.0.0.1"].includes(location.hostname);
     const localBackend = ["localhost", "127.0.0.1"].includes(new URL(requestedOrigin).hostname);
-    if (requestedOrigin === location.origin || (localFrontend && localBackend)) API_BASE = requestedOrigin;
+    if (requestedOrigin === RENDER_API_BASE || requestedOrigin === location.origin || (localFrontend && localBackend)) API_BASE = requestedOrigin;
   } catch { /* Se ignora una URL de API inválida. */ }
 }
 const API = `${API_BASE}/api/v1`;

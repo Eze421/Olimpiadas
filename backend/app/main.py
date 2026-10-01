@@ -10,7 +10,9 @@ from app.repositories import AuditRepository
 app = FastAPI(title="Olimpiadas API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    # El frontend puede publicarse en un dominio distinto del backend de Render.
+    # La API usa tokens Bearer, no cookies, por lo que no necesita credenciales CORS.
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],

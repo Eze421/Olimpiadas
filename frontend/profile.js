@@ -1,4 +1,4 @@
-const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : location.origin;
+const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http://127.0.0.1:8000" : "https://olimpiadas-v004.onrender.com";
 const token = localStorage.getItem("olimpiadas_token");
 const byId = (id) => document.getElementById(id);
 function money(amount, currency) { return `${currency === "USD" ? "US$" : "$"}${Number(amount || 0).toLocaleString("es-AR", { maximumFractionDigits: 2 })} ${currency || "ARS"}`; }
