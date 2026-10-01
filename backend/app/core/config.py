@@ -2,7 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://olimpiadas:olimpiadas@localhost:5432/olimpiadas"
+    # SQLite es la opción local sin contenedores. PostgreSQL sigue siendo compatible
+    # definiendo DATABASE_URL=postgresql+asyncpg://... en .env.
+    database_url: str = "sqlite+aiosqlite:///./data/olimpiadas.db"
     jwt_secret: str = "change-this-in-production-to-a-long-random-secret"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 480

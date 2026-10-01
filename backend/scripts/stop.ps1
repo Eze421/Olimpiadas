@@ -7,10 +7,3 @@ if (Test-Path .run\api.pid) {
     Remove-Item .run\api.pid -Force
     Write-Host 'API detenida.'
 }
-if (Get-Command podman -ErrorAction SilentlyContinue) {
-    podman container exists olimpiadas-postgres
-    if ($LASTEXITCODE -eq 0) {
-        podman stop olimpiadas-postgres | Out-Null
-        Write-Host 'PostgreSQL detenido; sus datos permanecen en el volumen.'
-    }
-}

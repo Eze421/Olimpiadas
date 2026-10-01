@@ -12,8 +12,3 @@ if [[ -f .run/api.pid ]]; then
   fi
   rm -f .run/api.pid
 fi
-
-if command -v podman >/dev/null 2>&1 && podman container exists olimpiadas-postgres; then
-  podman stop olimpiadas-postgres >/dev/null
-  echo "PostgreSQL detenido; sus datos permanecen en el volumen."
-fi

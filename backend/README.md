@@ -1,6 +1,6 @@
 # Olimpiadas API
 
-Backend en FastAPI + PostgreSQL con arquitectura por capas: routers (HTTP), services (reglas), repositories (datos) y schemas (contratos Pydantic).
+Backend en FastAPI con arquitectura por capas: routers (HTTP), services (reglas), repositories (datos) y schemas (contratos Pydantic). Para desarrollo usa SQLite local por defecto, sin contenedores.
 
 El modelo de ventas turísticas (productos, proveedores, carritos, compradores, pasajeros, ventas y pagos) está documentado en [docs/database-design.md](docs/database-design.md).
 
@@ -8,15 +8,12 @@ El modelo de ventas turísticas (productos, proveedores, carritos, compradores, 
 
 ```bash
 cp .env.example .env
-# Bazzite/Fedora Atomic: PostgreSQL aislado, solo accesible desde localhost
-podman run -d --name olimpiadas-postgres --replace --label app=olimpiadas \
-  -e POSTGRES_DB=olimpiadas -e POSTGRES_USER=olimpiadas -e POSTGRES_PASSWORD=olimpiadas \
-  -p 127.0.0.1:5432:5432 -v olimpiadas_postgres_data:/var/lib/postgresql/data:Z \
-  docker.io/library/postgres:16-alpine
 python -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m app.seed
 .venv/bin/uvicorn app.main:app --reload
 ```
+
+La base se crea automáticamente en `data/olimpiadas.db`. Para usar PostgreSQL en un despliegue o entorno compartido, definí en `.env` una URL como `DATABASE_URL=postgresql+asyncpg://usuario:clave@host:5432/base`; Podman es opcional y ya no forma parte del inicio local.
 
 La documentación interactiva queda en `http://127.0.0.1:8000/docs`.
 
@@ -40,9 +37,9 @@ Con ese token, el cliente puede consultar `GET /api/v1/cart`, agregar con `POST 
 
 ## Inicio y detención automáticos
 
-En Linux/Bazzite, una vez instaladas las dependencias, ejecutá `./scripts/start.sh` para levantar PostgreSQL aislado, cargar las cuentas y arrancar la API. Para detener ambos servicios: `./scripts/stop.sh`.
+En Linux/Bazzite, una vez instaladas las dependencias, ejecutá `./scripts/start.sh` para crear/cargar la base SQLite local y arrancar la API. Para detenerla: `./scripts/stop.sh`.
 
-En Windows con Podman instalado, usá `scripts\\start.bat` y `scripts\\stop.bat`. Los scripts guardan el PID y el registro de la API en `.run/`; la base conserva sus datos en el volumen de Podman.
+En Windows, usá `scripts\\start.bat` y `scripts\\stop.bat`; no requieren Podman. Los scripts guardan el PID y el registro de la API en `.run/`, y la base local persiste en `data\\olimpiadas.db`.
 
 ## Cuentas de prueba
 

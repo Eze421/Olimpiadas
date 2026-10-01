@@ -1,0 +1,9 @@
+{
+  "liveServer.settings.ignoreFiles": [
+    "**/.git/**",
+    "**/.run/**",
+    "backend/.run/**",
+    "backend/data/**",
+    "backend/media/**"
+  ]
+}
