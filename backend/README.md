@@ -41,6 +41,12 @@ En Linux/Bazzite, una vez instaladas las dependencias, ejecutá `./scripts/start
 
 En Windows, usá `scripts\\start.bat` y `scripts\\stop.bat`; no requieren Podman. Los scripts guardan el PID y el registro de la API en `.run/`, y la base local persiste en `data\\olimpiadas.db`.
 
+## Render
+
+Configurá el **Root Directory** como `backend`, el comando de compilación como `pip install -r requirements.txt` y el comando de inicio como `./scripts/start.sh`. El script detecta automáticamente el entorno de Render, utiliza el puerto asignado por `PORT` y ejecuta Uvicorn en primer plano.
+
+SQLite sirve para una demostración, pero el disco de Render puede ser efímero: las cuentas, reservas e imágenes pueden perderse al redeplegar o reiniciar la instancia. Para datos persistentes, creá una base PostgreSQL de Render y configurá `DATABASE_URL` con su URL interna usando el prefijo `postgresql+asyncpg://`.
+
 ## Cuentas de prueba
 
 Todas usan la contraseña `DemoSeguro2026!`:
