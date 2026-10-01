@@ -2,6 +2,16 @@ const API_BASE = ["localhost", "127.0.0.1"].includes(location.hostname) ? "http:
 const token = localStorage.getItem("olimpiadas_token");
 const byId = (id) => document.getElementById(id);
 function money(amount, currency) { return `${currency === "USD" ? "US$" : "$"}${Number(amount || 0).toLocaleString("es-AR", { maximumFractionDigits: 2 })} ${currency || "ARS"}`; }
+function emailOrder(item, currency) {
+  const unitPrice = Number(item.total || 0) / Math.max(Number(item.quantity || 1), 1);
+  return {
+    image_url: new URL("img/logo_192x192 .png", location.href).href,
+    name: item.product_name,
+    units: item.quantity,
+    price: money(unitPrice, currency),
+    cost: money(item.total, currency),
+  };
+}
 function statusName(status) { return ({ pending_payment: "Pendiente de pago", confirmed: "Confirmada", cancelled: "Cancelada", refund_pending: "Reintegro pendiente", refunded: "Reintegrada" })[status] || status; }
 async function loadProfile() {
   if (!token) { location.replace("index.html"); return; }
@@ -31,17 +41,24 @@ function render(profile) {
     card.innerHTML = `<div class="reservation-top"><div><span class="reservation-number">${reservation.sale_number}</span><time>${date}</time></div><span class="reservation-status status-${reservation.status}">${statusName(reservation.status)}</span></div><ul>${items}</ul><div class="reservation-total"><span>Total</span><strong>${money(reservation.total, reservation.currency)}</strong></div>`;
     if (reservation.can_cancel) {
       const cancel = document.createElement("button"); cancel.className = "text-button cancel-reservation"; cancel.type = "button"; cancel.textContent = "Cancelar reserva";
-      cancel.addEventListener("click", () => cancelReservation(reservation.sale_number, cancel)); card.append(cancel);
+      cancel.addEventListener("click", () => cancelReservation(reservation, profile.email, cancel)); card.append(cancel);
     }
     container.append(card);
   }
 }
-async function cancelReservation(saleNumber, button) {
-  if (!confirm(`¿Querés cancelar la reserva ${saleNumber}? Se restaurará la disponibilidad.`)) return;
+async function cancelReservation(reservation, email, button) {
+  if (!confirm(`¿Querés cancelar la reserva ${reservation.sale_number}? Se restaurará la disponibilidad.`)) return;
   button.disabled = true; button.textContent = "Cancelando…";
   try {
-    const response = await fetch(`${API_BASE}/api/v1/cart/reservations/${encodeURIComponent(saleNumber)}/cancel`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    const response = await fetch(`${API_BASE}/api/v1/cart/reservations/${encodeURIComponent(reservation.sale_number)}/cancel`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.detail || "No se pudo cancelar la reserva"); }
+    await sendTransactionEmail({
+      email,
+      orderId: reservation.sale_number,
+      orders: reservation.items.map((item) => emailOrder(item, reservation.currency)),
+      cost: money(reservation.total, reservation.currency),
+      status: "cancelled",
+    });
     await loadProfile();
   } catch (error) { button.disabled = false; button.textContent = "Cancelar reserva"; alert(error.message); }
 }

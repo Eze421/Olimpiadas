@@ -6,6 +6,15 @@ let cart = null;
 
 function imageUrl(path) { return path?.startsWith("http") ? path : `${API_BASE}${path || ""}`; }
 function money(amount, currency) { return `${currency === "USD" ? "US$" : "$"}${Number(amount || 0).toLocaleString("es-AR", { maximumFractionDigits: 2 })} ${currency || "ARS"}`; }
+function emailOrder(item) {
+  return {
+    image_url: item.image_url ? imageUrl(item.image_url) : new URL("img/logo_192x192 .png", location.href).href,
+    name: item.product_name,
+    units: item.quantity,
+    price: money(item.unit_price, item.currency),
+    cost: money(item.line_total, item.currency),
+  };
+}
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -43,6 +52,19 @@ byId("checkoutButton").addEventListener("click", async () => {
   const button = byId("checkoutButton"); button.disabled = true; button.textContent = "Confirmando…";
   try {
     const reservation = await api("/cart/checkout", { method: "POST" });
+    const total = cart.totals?.map((item) => money(item.amount, item.currency)).join(" · ") || money(0, "ARS");
+    // El correo es auxiliar para la muestra: nunca debe impedir ir al perfil
+    // después de que la reserva ya fue confirmada por el servidor.
+    try {
+      const profile = await api("/auth/me");
+      await sendTransactionEmail({
+        email: profile.email,
+        orderId: reservation.sale_number,
+        orders: cart.items.map(emailOrder),
+        cost: total,
+        status: "confirmed",
+      });
+    } catch (emailError) { console.warn("No se pudo preparar el correo de confirmación", emailError); }
     location.assign(`profile.html?reserva=${encodeURIComponent(reservation.sale_number)}`);
   } catch (error) { byId("cartMessage").textContent = error.message; button.disabled = false; button.textContent = "Confirmar compra"; }
 });
