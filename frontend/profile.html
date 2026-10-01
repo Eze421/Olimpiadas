@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#06283d">
+    <title>Mi perfil · Azzury</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="profile.js" defer></script>
+  </head>
+  <body class="profile-page">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Volver a Azzury"><img class="brand-logo" src="img/logo_192x192 .png" alt="" aria-hidden="true"><span>Azzury</span></a>
+      <div class="topbar-actions"><a class="button button-quiet cart-button" href="cart.html">Carrito</a><button class="button button-quiet account-button" id="logoutButton" type="button">Salir</button></div>
+    </header>
+    <main class="profile-main">
+      <a class="back-link" href="index.html">← Seguir explorando</a>
+      <p class="form-message" id="profileMessage" role="status"></p>
+      <section id="profileContent" hidden>
+        <div class="profile-hero"><div class="profile-avatar" id="profileInitials" aria-hidden="true"></div><div><p class="eyebrow">Tu cuenta</p><h1 id="profileName">Mi perfil</h1><p>Gestioná tus datos y consultá tus reservas.</p></div></div>
+        <div class="profile-grid">
+          <section class="profile-card"><p class="eyebrow">Datos personales</p><dl class="profile-data"><dt>Correo</dt><dd id="profileEmail"></dd><dt>Teléfono</dt><dd id="profilePhone"></dd></dl></section>
+          <section class="profile-card profile-reservations"><div class="profile-card-heading"><div><p class="eyebrow">Tus viajes</p><h2>Reservas</h2></div><span id="reservationCount" class="reservation-count"></span></div><div id="reservations"></div><div class="profile-empty" id="reservationsEmpty" hidden><span aria-hidden="true">✦</span><h3>Todavía no tenés reservas</h3><p>Cuando confirmes una compra, vas a encontrar todos sus detalles acá.</p><a class="button button-primary" href="index.html">Explorar experiencias</a></div></section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

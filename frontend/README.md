@@ -17,4 +17,4 @@ La URL de la API por defecto es `http://127.0.0.1:8000` en desarrollo local. Si 
 
 La gestión de productos requiere iniciar sesión con una cuenta de Jefe de ventas. Los clientes pueden crear una cuenta desde Ingresar/Carrito; el registro los inicia automáticamente. Las imágenes se envían al backend y se leen desde su ruta `/media/`.
 
-El carrito requiere una cuenta de cliente y se almacena en el backend por 15 minutos desde su creación. La interfaz permite agregar productos, modificar cantidades, quitar líneas y vaciarlo. Todavía no hay checkout ni procesamiento de pagos.
+El carrito requiere una cuenta de cliente y se almacena en el backend por 15 minutos desde su creación. La interfaz permite agregar productos, modificar cantidades, quitar líneas y vaciarlo. El botón **Confirmar compra** crea una reserva simulada, la registra en el servidor y la muestra en `profile.html`; desde allí puede cancelarse y se restaura el stock finito. La simulación admite una sola moneda por compra y no procesa pagos reales.

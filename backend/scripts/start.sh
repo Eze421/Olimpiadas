@@ -38,7 +38,7 @@ if [[ -f .run/api.pid ]] && kill -0 "$(<.run/api.pid)" 2>/dev/null; then
 fi
 
 mkdir -p .run
-nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 > .run/api.log 2>&1 &
+nohup .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload > .run/api.log 2>&1 &
 echo $! > .run/api.pid
 echo "Listo: API en http://127.0.0.1:8000/docs"
 echo "Registro: $ROOT_DIR/.run/api.log"

@@ -76,7 +76,7 @@ function setSession(token) {
   state.token = token;
   state.role = roleFromToken(token);
   localStorage.setItem("olimpiadas_token", token);
-  byId("accountButton").textContent = "Salir";
+  byId("accountButton").textContent = state.role === "customer" ? "Mi perfil" : "Salir";
   byId("manageNav").hidden = state.role !== "sales_manager";
   byId("adminTopButton").hidden = state.role !== "sales_manager";
 }
@@ -197,7 +197,10 @@ function openDetails(product) {
   byId("detailDates").textContent = startDate || endDate
     ? `Fechas: ${startDate || "A confirmar"}${endDate ? ` al ${endDate}` : ""}`
     : "Fechas a coordinar";
-  renderDetailFields(product.details);
+  const packageIncludes = product.package_components?.length
+    ? product.package_components.map((item) => `${item.quantity > 1 ? `${item.quantity} × ` : ""}${item.name}`).join(" · ")
+    : null;
+  renderDetailFields(packageIncludes ? { ...(product.details || {}), incluye: packageIncludes } : product.details);
   const cancellation = product.cancellation_policy?.trim();
   byId("detailCancellationSection").hidden = !cancellation;
   byId("detailCancellation").textContent = cancellation || "";
@@ -282,7 +285,7 @@ function openCart() {
     else byId("loginDialog").showModal();
     return;
   }
-  loadCart(true);
+  location.href = "cart.html";
 }
 
 async function loadCart(showDialog = false) {
@@ -291,7 +294,7 @@ async function loadCart(showDialog = false) {
   try {
     state.cart = await api("/cart");
     renderCart();
-    if (showDialog) byId("cartDialog").showModal();
+    if (showDialog) location.href = "cart.html";
   } catch (error) {
     byId("cartMessage").textContent = error.message;
     if (error.status === 401) {
@@ -428,8 +431,7 @@ async function submitPendingCartItem(item) {
     state.pendingCartItem = null;
     updateCartCount();
     if (byId("detailDialog").open) byId("detailDialog").close();
-    renderCart();
-    byId("cartDialog").showModal();
+    location.href = "cart.html";
     showToast("Producto agregado al carrito");
   } catch (error) { showToast(error.message); }
 }
@@ -555,6 +557,7 @@ function openProductForm(product = null) {
   byId("productName").value = product?.name || "";
   byId("productSku").value = product?.sku || "";
   byId("productType").value = product?.product_type || "accommodation";
+  populatePackageComponents(product);
   byId("productDestination").value = product?.destination || "";
   byId("productPrice").value = product?.base_price ?? "";
   byId("productCurrency").value = product?.currency || "ARS";
@@ -567,6 +570,7 @@ function openProductForm(product = null) {
   byId("productCancellation").value = product?.cancellation_policy || "";
   byId("productImageAlt").value = "";
   setStockField();
+  setPackageComponentsField();
   renderExistingImages(product?.images || []);
   productDialog.showModal();
 }
@@ -575,6 +579,25 @@ function setStockField() {
   const unlimited = byId("productAvailability").value === "unlimited";
   byId("stockField").hidden = unlimited;
   byId("productStock").required = !unlimited;
+}
+
+function populatePackageComponents(product = null) {
+  const select = byId("packageComponents");
+  select.replaceChildren();
+  const selected = new Set((product?.package_components || []).map((item) => String(item.product_id)));
+  for (const item of state.products.filter((entry) => entry.product_type !== "package" && entry.is_active !== false)) {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = `${item.name} · ${item.destination}`;
+    option.selected = selected.has(String(item.id));
+    select.append(option);
+  }
+}
+
+function setPackageComponentsField() {
+  const isPackage = byId("productType").value === "package";
+  byId("packageComponentsField").hidden = !isPackage;
+  byId("packageComponents").required = isPackage;
 }
 
 function renderExistingImages(images) {
@@ -630,6 +653,8 @@ function productPayload() {
     catch { throw new Error("Los detalles adicionales deben ser JSON válido."); }
     if (!details || Array.isArray(details) || typeof details !== "object") throw new Error("Los detalles deben ser un objeto JSON.");
   }
+  const isPackage = byId("productType").value === "package";
+  const package_components = isPackage ? [...byId("packageComponents").selectedOptions].map((option) => ({ product_id: Number(option.value), quantity: 1 })) : [];
   return {
     sku: byId("productSku").value.trim(),
     name: byId("productName").value.trim(),
@@ -645,6 +670,7 @@ function productPayload() {
     starts_on: byId("productStarts").value || null,
     ends_on: byId("productEnds").value || null,
     is_active: state.currentProduct?.is_active ?? true,
+    package_components,
   };
 }
 
@@ -698,19 +724,25 @@ document.querySelectorAll(".category-chip").forEach((chip) => chip.addEventListe
   state.filter = chip.dataset.category;
   renderProducts();
 }));
-byId("accountButton").addEventListener("click", () => state.token ? logout() : openLogin());
+byId("accountButton").addEventListener("click", () => {
+  if (!state.token) openLogin();
+  else if (state.role === "customer") location.assign("profile.html");
+  else logout();
+});
 byId("adminTopButton").addEventListener("click", () => setView("admin"));
 byId("manageNav").addEventListener("click", () => {
   if (state.role === "sales_manager") setView("admin");
   else if (!state.token) openLogin();
 });
-byId("cartButton").addEventListener("click", openCart);
-byId("clearCartButton").addEventListener("click", clearCart);
+byId("cartButton").addEventListener("click", (event) => {
+  if (state.role !== "customer") { event.preventDefault(); openCart(); }
+});
 byId("addToCartButton").addEventListener("click", addProductToCart);
 byId("homeNav").addEventListener("click", () => setView("store"));
 document.querySelector(".brand").addEventListener("click", () => setView("store"));
 byId("newProductButton").addEventListener("click", () => openProductForm());
 byId("productAvailability").addEventListener("change", setStockField);
+byId("productType").addEventListener("change", () => { populatePackageComponents(state.currentProduct); setPackageComponentsField(); });
 byId("productForm").addEventListener("submit", saveProduct);
 byId("detailPrevious").addEventListener("click", () => changeDetailImage(-1));
 byId("detailNext").addEventListener("click", () => changeDetailImage(1));
@@ -755,7 +787,7 @@ byId("signupForm").addEventListener("submit", async (event) => {
   } catch (error) { message.textContent = error.message; }
 });
 document.querySelectorAll("[data-close]").forEach((button) => button.addEventListener("click", () => byId(button.dataset.close).close()));
-byId("accountButton").textContent = state.token ? "Salir" : "Ingresar";
+byId("accountButton").textContent = state.token ? (state.role === "customer" ? "Mi perfil" : "Salir") : "Ingresar";
 byId("manageNav").hidden = state.role !== "sales_manager";
 byId("adminTopButton").hidden = state.role !== "sales_manager";
 if (state.role === "customer") loadCart(false);

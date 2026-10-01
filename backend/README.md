@@ -34,7 +34,9 @@ Al crear un producto se envía `availability_mode` como `finite` o `unlimited`. 
 
 Los clientes se registran con `POST /api/v1/auth/register/customer`, enviando nombre, apellido, correo, contraseña (mínimo 10 caracteres) y teléfono opcional. La respuesta incluye un token de acceso y el ID de cliente; el alta pública siempre crea el rol cliente. La ruta `POST /api/v1/auth/register` queda reservada a Jefatura para crear cuentas internas.
 
-Con ese token, el cliente puede consultar `GET /api/v1/cart`, agregar con `POST /api/v1/cart/items` (`product_id`, `quantity`), cambiar cantidades con `PATCH /api/v1/cart/items/{item_id}`, quitar una línea con `DELETE /api/v1/cart/items/{item_id}` o vaciarlo con `DELETE /api/v1/cart`. El carrito vence a los 15 minutos de su creación. El servidor valida que el producto siga publicado y que no se exceda el stock finito; los subtotales se devuelven separados por moneda. Todavía no hay checkout ni procesamiento de pagos.
+Con ese token, el cliente puede consultar `GET /api/v1/cart`, agregar con `POST /api/v1/cart/items` (`product_id`, `quantity`), cambiar cantidades con `PATCH /api/v1/cart/items/{item_id}`, quitar una línea con `DELETE /api/v1/cart/items/{item_id}` o vaciarlo con `DELETE /api/v1/cart`. El carrito vence a los 15 minutos de su creación. El servidor valida que el producto siga publicado y que no se exceda el stock finito; los subtotales se devuelven separados por moneda.
+
+`POST /api/v1/cart/checkout` realiza una compra simulada: registra una reserva confirmada, descuenta stock finito y vacía el carrito. Para evitar conversiones ficticias, cada compra debe contener una única moneda. `GET /api/v1/auth/me` devuelve los datos y reservas del cliente; una reserva confirmada puede anularse con `POST /api/v1/cart/reservations/{sale_number}/cancel`, restaurando su disponibilidad. No hay cobro ni integración de pagos real.
 
 ## Inicio y detención automáticos
 

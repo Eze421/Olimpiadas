@@ -11,30 +11,33 @@
   <body>
     <header class="topbar">
       <a class="brand" href="#inicio" aria-label="Olimpiadas, inicio">
-        <span class="brand-mark" aria-hidden="true">O</span>
-        <span>olimpiadas</span>
+        <img class="brand-logo" src="img/logo_192x192 .png" alt="" aria-hidden="true">
+        <span>Azzury</span>
       </a>
       <div class="topbar-actions">
         <button class="button button-quiet admin-top-button" id="adminTopButton" type="button" hidden>Administrar</button>
-        <button class="button button-quiet cart-button" id="cartButton" type="button">Carrito <span id="cartCount">0</span></button>
+        <a class="button button-quiet cart-button" id="cartButton" href="cart.html">Carrito <span id="cartCount">0</span></a>
         <button class="button button-quiet account-button" id="accountButton" type="button">Ingresar</button>
       </div>
     </header>
 
     <main id="inicio">
       <section class="store-view" id="storeView" aria-labelledby="pageTitle">
-        <div class="intro">
-          <p class="eyebrow">Tu próximo viaje empieza acá</p>
-          <h1 id="pageTitle">Explorá experiencias</h1>
-          <p class="intro-copy">Encontrá tu próximo destino y empezá a planear.</p>
-        </div>
+        <section class="hero-shell">
+          <div class="intro">
+            <p class="eyebrow">Viajes pensados para recordar</p>
+            <h1 id="pageTitle">Llegá más lejos.<br>Sentí cada momento.</h1>
+            <p class="intro-copy">Destinos, estadías y paquetes elegidos para que tu próxima historia empiece hoy.</p>
+          </div>
 
-        <form class="search" id="searchForm" role="search">
-          <label class="sr-only" for="searchInput">Buscar destinos o experiencias</label>
-          <span class="search-icon" aria-hidden="true">⌕</span>
-          <input id="searchInput" type="search" placeholder="¿A dónde querés ir?" autocomplete="off">
-          <button class="button button-primary search-submit" type="submit">Buscar</button>
-        </form>
+          <form class="search" id="searchForm" role="search">
+            <label class="sr-only" for="searchInput">Buscar destinos o experiencias</label>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="searchInput" type="search" placeholder="¿A dónde querés ir?" autocomplete="off">
+            <button class="button button-primary search-submit" type="submit">Explorar</button>
+          </form>
+          <p class="hero-trust">✦ Paquetes armados para vos <span>•</span> Reservas flexibles</p>
+        </section>
 
         <div class="section-heading">
           <div>
@@ -152,6 +155,7 @@
               <option value="car_rental">Alquiler de auto</option><option value="package">Paquete</option>
             </select>
           </label>
+          <label class="field field-full package-components-field" id="packageComponentsField" hidden><span>Servicios incluidos</span><select class="text-input" id="packageComponents" multiple size="5" aria-describedby="packageComponentsHelp"></select><small id="packageComponentsHelp">Elegí los vuelos, alojamientos o autos que forman parte del paquete.</small></label>
           <label class="field"><span>Destino</span><input class="text-input" id="productDestination" required maxlength="120"></label>
           <label class="field"><span>Precio</span><input class="text-input" id="productPrice" type="number" min="0" step="0.01" required></label>
           <label class="field"><span>Moneda</span><select class="text-input" id="productCurrency"><option value="ARS">ARS</option><option value="USD">USD</option></select></label>

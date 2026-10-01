@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8f5">
+    <title>Tu carrito · Olimpiadas</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="cart.js" defer></script>
+  </head>
+  <body class="cart-page">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Volver a Azzury"><img class="brand-logo" src="img/logo_192x192 .png" alt="" aria-hidden="true"><span>Azzury</span></a>
+      <a class="button button-quiet account-button" href="index.html">Explorar</a>
+    </header>
+    <main class="cart-page-main">
+      <a class="back-link" href="index.html">← Seguir explorando</a>
+      <div class="cart-page-heading">
+        <div><p class="eyebrow">Tu selección</p><h1>Tu carrito</h1><p id="cartExpiry" class="cart-expiry"></p></div>
+        <button class="button button-danger" id="clearCartButton" type="button">Vaciar carrito</button>
+      </div>
+      <p class="form-message" id="cartMessage" role="status"></p>
+      <section class="cart-page-layout">
+        <div class="cart-items cart-page-items" id="cartItems" aria-label="Productos del carrito"></div>
+        <aside class="cart-summary" id="cartFooter">
+          <span>Subtotal</span><strong id="cartTotals"></strong>
+          <p>Los importes están agrupados por moneda.</p>
+          <button class="button button-primary button-wide" id="checkoutButton" type="button">Confirmar compra</button>
+          <small>Compra simulada: tu reserva se registrará inmediatamente.</small>
+        </aside>
+      </section>
+      <section class="cart-empty-page" id="cartEmpty" hidden><span aria-hidden="true">✳</span><h2>Tu carrito está vacío</h2><p>Elegí una experiencia o un paquete para empezar a planear tu viaje.</p><a class="button button-primary" href="index.html">Explorar experiencias</a></section>
+    </main>
+  </body>
+</html>

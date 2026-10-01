@@ -134,6 +134,9 @@ class Product(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     images: Mapped[list["ProductImage"]] = relationship(back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.position")
+    package_components: Mapped[list["ProductPackageItem"]] = relationship(
+        back_populates="package", cascade="all, delete-orphan", foreign_keys="ProductPackageItem.package_id"
+    )
     __table_args__ = (
         CheckConstraint("base_price >= 0", name="ck_product_base_price"),
         CheckConstraint("available_units IS NULL OR available_units >= 0", name="ck_product_available_units"),
@@ -150,6 +153,34 @@ class ProductImage(Base):
     position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     product: Mapped[Product] = relationship(back_populates="images")
+
+
+class ProductPackageItem(Base):
+    """Servicio incluido en un paquete que se comercializa como un único producto."""
+    __tablename__ = "product_package_items"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    package_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    included_product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="RESTRICT"), index=True)
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+    package: Mapped[Product] = relationship(back_populates="package_components", foreign_keys=[package_id])
+    included_product: Mapped[Product] = relationship(foreign_keys=[included_product_id])
+    __table_args__ = (
+        UniqueConstraint("package_id", "included_product_id", name="uq_package_component"),
+        CheckConstraint("quantity > 0", name="ck_package_component_quantity"),
+        CheckConstraint("package_id <> included_product_id", name="ck_package_component_not_self"),
+    )
+
+    @property
+    def product_id(self):
+        return self.included_product_id
+
+    @property
+    def name(self):
+        return self.included_product.name
+
+    @property
+    def product_type(self):
+        return self.included_product.product_type
 
 
 class ProductProvider(Base):

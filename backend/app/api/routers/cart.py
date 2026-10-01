@@ -55,3 +55,15 @@ async def clear_cart(user: CurrentUser, session: SessionDep):
         return await CartService(session).clear(user)
     except (NotFoundError, ForbiddenError, DomainError) as error:
         translate_error(error)
+
+
+@router.post("/checkout")
+async def checkout_cart(user: CurrentUser, session: SessionDep):
+    try: return await CartService(session).checkout(user)
+    except (NotFoundError, ForbiddenError, DomainError) as error: translate_error(error)
+
+
+@router.post("/reservations/{sale_number}/cancel", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_reservation(sale_number: str, user: CurrentUser, session: SessionDep):
+    try: await CartService(session).cancel_reservation(user, sale_number)
+    except (NotFoundError, ForbiddenError, DomainError) as error: translate_error(error)

@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
-from app.models import AvailabilityMode, Currency, OperationStatus, ProductType, Role
+from app.models import AvailabilityMode, Currency, OperationStatus, ProductType, Role, SaleStatus
 
 
 class UserCreate(BaseModel):
@@ -52,6 +52,30 @@ class CustomerRegister(BaseModel):
 
 class CustomerRegistrationResponse(TokenResponse):
     customer_id: int
+
+
+class ReservationItemRead(BaseModel):
+    product_name: str
+    destination: str
+    quantity: int
+    total: Decimal
+
+
+class ReservationRead(BaseModel):
+    sale_number: str
+    status: SaleStatus
+    currency: Currency
+    total: Decimal
+    purchased_at: datetime
+    items: list[ReservationItemRead]
+    can_cancel: bool
+
+
+class CustomerProfileRead(BaseModel):
+    full_name: str
+    email: EmailStr
+    phone: str | None
+    reservations: list[ReservationRead]
 
 
 class OperationCreate(BaseModel):
@@ -119,6 +143,7 @@ class ProductCreate(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     is_active: bool = True
+    package_components: list["PackageComponentCreate"] = []
 
     @model_validator(mode="after")
     def validate_availability(self):
@@ -128,6 +153,10 @@ class ProductCreate(BaseModel):
             raise ValueError("Los productos finitos necesitan una cantidad disponible")
         if self.starts_on and self.ends_on and self.ends_on < self.starts_on:
             raise ValueError("ends_on no puede ser anterior a starts_on")
+        if self.product_type == ProductType.PACKAGE and not self.package_components:
+            raise ValueError("Un paquete debe incluir al menos un servicio")
+        if self.product_type != ProductType.PACKAGE and self.package_components:
+            raise ValueError("Solo los paquetes pueden incluir servicios")
         return self
 
 
@@ -146,6 +175,12 @@ class ProductUpdate(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     is_active: bool | None = None
+    package_components: list["PackageComponentCreate"] | None = None
+
+
+class PackageComponentCreate(BaseModel):
+    product_id: int = Field(gt=0)
+    quantity: int = Field(default=1, ge=1, le=100)
 
 
 class ProductImageRead(BaseModel):
@@ -154,6 +189,14 @@ class ProductImageRead(BaseModel):
     url: str
     alt_text: str | None
     position: int
+
+
+class PackageComponentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    product_id: int
+    name: str
+    product_type: ProductType
+    quantity: int
 
 
 class ProductRead(BaseModel):
@@ -173,6 +216,7 @@ class ProductRead(BaseModel):
     ends_on: date | None
     is_active: bool
     images: list[ProductImageRead] = []
+    package_components: list[PackageComponentRead] = []
 
     model_config = ConfigDict(from_attributes=True)
 

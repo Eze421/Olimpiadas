@@ -38,6 +38,13 @@ async def startup() -> None:
             await connection.execute(text("ALTER TABLE products ADD COLUMN IF NOT EXISTS availability_mode availabilitymode NOT NULL DEFAULT 'FINITE'"))
             await connection.execute(text("ALTER TABLE products ALTER COLUMN available_units DROP NOT NULL"))
             await connection.execute(text("UPDATE products SET available_units = NULL WHERE availability_mode = 'UNLIMITED'"))
+            # Bases creadas antes de la modalidad ilimitada tenían esta regla sin admitir NULL.
+            # Se la reemplaza para que el stock solo sea obligatorio en productos finitos.
+            await connection.execute(text("ALTER TABLE products DROP CONSTRAINT IF EXISTS ck_product_available_units"))
+            await connection.execute(text("""
+                ALTER TABLE products ADD CONSTRAINT ck_product_available_units
+                CHECK (available_units IS NULL OR available_units >= 0)
+            """))
             await connection.execute(text("""
                 DO $$ BEGIN
                     ALTER TABLE products ADD CONSTRAINT ck_product_availability
